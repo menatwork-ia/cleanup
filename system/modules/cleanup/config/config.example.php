@@ -36,19 +36,19 @@ $GLOBALS['CLEAN_UP']['FOLDERS'] = array
 );
 
 /**
- * A list with file names that never been touched.
+ * A list with file names and types that never been touched.
  *
  * @var array
  */
 $GLOBALS['CLEAN_UP']['GENERAL_BLACKLIST'] = array
 (
-    // Base
+    // Basic rules
     '.htaccess',
-    '.htpasswd',
-    '*.jpg'
-    // Example
-    //'*.jpeg'
-    //'my_text_*.txt
+    '.htpasswd'
+    // Examples
+    // '*.jpeg',
+    // '*.jpg',
+    // 'my_text_*.txt'
 );
 
 /**
@@ -61,12 +61,12 @@ $GLOBALS['CLEAN_UP']['GENERAL_BLACKLIST'] = array
 $GLOBALS['CLEAN_UP']['GENERAL_LIFETIME'] = 30;
 
 /**
- * Contao crons.
+ * Activate contao crons
  */
-//$GLOBALS['TL_CRON']['monthly'][]    = array('CleanUp\CleanUp', 'run');
-//$GLOBALS['TL_CRON']['weekly'][]     = array('CleanUp\CleanUp', 'run');
-//$GLOBALS['TL_CRON']['daily'][]      = array('CleanUp\CleanUp', 'run');
+$GLOBALS['TL_CRON']['monthly'][]    = array('CleanUp\CleanUp', 'run');
+$GLOBALS['TL_CRON']['weekly'][]     = array('CleanUp\CleanUp', 'run');
+$GLOBALS['TL_CRON']['daily'][]      = array('CleanUp\CleanUp', 'run');
 
 // Contao 3 only
-//$GLOBALS['TL_CRON']['hourly'][]     = array('CleanUp\CleanUp', 'run');
-//$GLOBALS['TL_CRON']['minutely'][]   = array('CleanUp\CleanUp', 'run');
+$GLOBALS['TL_CRON']['hourly'][]     = array('CleanUp\CleanUp', 'run');
+$GLOBALS['TL_CRON']['minutely'][]   = array('CleanUp\CleanUp', 'run');
