@@ -19,3 +19,13 @@ http://www.example.com/system/modules/cleanup/CleanUpCaller.php
 ### via Contao Cronjob
 
 Contao bietet die Möglichkeit sich in die Systemeigenen Cronjobs zu integrieren. Dafür muss man nur eins der 5 möglichen Beispiele aus der config.example.php in die dcaconfig.php oder in die config.php der eigenen Extension übernehmen und einkommentieren. Der stündliche und minütige Aufruf ist in Contao 2.11 nicht vorhanden.
+
+```php
+$GLOBALS['TL_CRON']['monthly'][]    = array('CleanUp\CleanUp', 'run');
+$GLOBALS['TL_CRON']['weekly'][]     = array('CleanUp\CleanUp', 'run');
+$GLOBALS['TL_CRON']['daily'][]      = array('CleanUp\CleanUp', 'run');
+
+// Contao 3 only
+$GLOBALS['TL_CRON']['hourly'][]     = array('CleanUp\CleanUp', 'run');
+$GLOBALS['TL_CRON']['minutely'][]   = array('CleanUp\CleanUp', 'run');
+```
