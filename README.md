@@ -5,8 +5,10 @@ Die CleanUp Extension ist als genereller Cronjob für die Löschung von Dateien 
 
 ### via Konsole
 
+```
 cd /var/www/contao/system/modules/cleanup
 php CleanUpCaller.php
+```
 
 ### via Direktaufruf in Contao 2.11
 
@@ -16,4 +18,4 @@ http://www.example.com/system/modules/cleanup/CleanUpCaller.php
 
 ### via Contao Cronjob
 
-Contao bietet die Möglichkeit sich in die Systemeigenen Cronjobs zu integrieren. Dafür muss man nur eins der 5 möglichen Beispiele aus der config.example.php in die dcaconfig.php übernehmen und einkommentieren. Der stündliche und minütige Aufruf ist in Contao 2.11 nicht vorhanden.
+Contao bietet die Möglichkeit sich in die Systemeigenen Cronjobs zu integrieren. Dafür muss man nur eins der 5 möglichen Beispiele aus der config.example.php in die dcaconfig.php oder in die config.php der eigenen Extension übernehmen und einkommentieren. Der stündliche und minütige Aufruf ist in Contao 2.11 nicht vorhanden.
