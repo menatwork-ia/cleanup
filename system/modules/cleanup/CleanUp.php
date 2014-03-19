@@ -227,7 +227,7 @@ class CleanUp
             }
             else
             {
-                \Backend::log('Delete some old files: ' . implode(',', $this->arrListOfDeletedFiles), __CLASS__ . '::run()', TL_CRON);
+                \Backend::log('Delete some old files: ' . implode(', ', $this->arrListOfDeletedFiles), __CLASS__ . '::run()', TL_CRON);
             }
         }
     }
@@ -239,7 +239,16 @@ class CleanUp
     {
         foreach ($this->objAppendIt as $strFullPath)
         {
+            // Build the path without the tl_root.
             $strPathWORoot = preg_replace('/^' . $this->strPregRoot . '\//i', '', $strFullPath, 1);
+
+            // Check if we have the file already in the list.
+            if(in_array($strPathWORoot, $this->arrListOfDeletedFiles))
+            {
+                continue;
+            }
+
+            // Check if we have the file.
             if (file_exists(TL_ROOT . '/' . $strPathWORoot) && is_file(TL_ROOT . '/' . $strPathWORoot))
             {
                 // If not in dry run remove the file AND if in contao 3.2 remove the file from the dbafs.
@@ -280,7 +289,7 @@ class CleanUp
 
             // Scan the folder and append the data to the overall container.
             $strFullPath = TL_ROOT . '/' . $GLOBALS['TL_CONFIG']['uploadPath'] . '/' . $arrFolderSettings['path'];
-            $this->objAppendIt->append($this->scanSingleFolder($strFullPath, $binRecursive));
+            $this->scanSingleFolder($strFullPath, $binRecursive);
         }
     }
 
@@ -307,7 +316,7 @@ class CleanUp
 
         $objRecursiveIt = new \RecursiveIteratorIterator($objFilterIt, \RecursiveIteratorIterator::SELF_FIRST);
 
-        return $objRecursiveIt;
+        $this->objAppendIt->append($objRecursiveIt);
     }
 
 }
