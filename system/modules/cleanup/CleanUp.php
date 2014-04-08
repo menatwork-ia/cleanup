@@ -56,7 +56,7 @@ class CleanUp
     protected $objAppendIt;
 
     /**
-     * Containss the TL_ROOT path for pregs.
+     * Contains the TL_ROOT path for pregs.
      *
      * @var string
      */
@@ -68,6 +68,20 @@ class CleanUp
      * @var array
      */
     protected $arrListOfDeletedFiles = array();
+
+    /**
+     * Flag if each log should dump.
+     *
+     * @var bool
+     */
+    protected $blnShowLogs = false;
+
+    /**
+     * If set the system downloads the file without the import in the database.
+     *
+     * @var bool
+     */
+    protected $blnDryRun = null;
 
     /**
      * Name of the config array used on the $GLOBALS array.
@@ -100,54 +114,7 @@ class CleanUp
      */
     protected function __construct()
     {
-        if (!isset($GLOBALS[self::CONF_NAME]))
-        {
-            return;
-        }
 
-        // The append iterator for the scanner.
-        $this->objAppendIt = new \AppendIterator();
-
-        // Flags for file scanning.
-        $this->strRDIFlags = \RecursiveDirectoryIterator::FOLLOW_SYMLINKS | \RecursiveDirectoryIterator::SKIP_DOTS | \RecursiveDirectoryIterator::UNIX_PATHS;
-
-        // Calculate the limit of the general lifetime.
-        $intLifeTime = intval($GLOBALS[self::CONF_NAME]['GENERAL_LIFETIME']);
-        if ($intLifeTime > 0)
-        {
-            $this->intTimeLimit = intval($GLOBALS[self::CONF_NAME]['GENERAL_LIFETIME']) * $this->intDayInSeconds;
-        }
-
-        // Check the folders for scanning.
-        if (is_array($GLOBALS[self::CONF_NAME]['FOLDERS']) && count($GLOBALS[self::CONF_NAME]['FOLDERS']) > 0)
-        {
-            foreach ($GLOBALS[self::CONF_NAME]['FOLDERS'] as $arrFolderSettings)
-            {
-                // Check if we have a path;
-                if (empty($arrFolderSettings['path']))
-                {
-                    continue;
-                }
-
-                $strFullPath = TL_ROOT . '/' . $GLOBALS['TL_CONFIG']['uploadPath'] . '/' . $arrFolderSettings['path'];
-                if (file_exists($strFullPath))
-                {
-                    $this->arrScanFolder[] = $arrFolderSettings;
-                }
-            }
-        }
-
-        // Get the general blacklist and make it ready for a preg_match.
-        if (is_array($GLOBALS[self::CONF_NAME]['GENERAL_BLACKLIST']) && count($GLOBALS[self::CONF_NAME]['GENERAL_BLACKLIST']) > 0)
-        {
-            foreach ($GLOBALS[self::CONF_NAME]['GENERAL_BLACKLIST'] as $strFilter)
-            {
-                $this->arrGeneralBlacklist[] = str_replace($this->arrPregSearch, $this->arrPregReplace, $strFilter);
-            }
-        }
-
-        // Make the TL_ROOT rdy for a preg.
-        $this->strPregRoot = str_replace(array('\\', '/'), array('\\\\', '\\/'), TL_ROOT);
     }
 
     /**
@@ -188,13 +155,132 @@ class CleanUp
     }
 
     /**
+     * @param boolean $blnDryRun
+     */
+    public function setDryRun($blnDryRun)
+    {
+        $this->blnDryRun = $blnDryRun;
+    }
+
+    /**
      * Check if we have a dry run mode.
      *
      * @return boolean
      */
     public function isDryRun()
     {
+        if($this->blnDryRun !== null)
+        {
+            return $this->blnDryRun;
+        }
+
         return ($GLOBALS[self::CONF_NAME]['DRY_RUN']) ? true : false;
+    }
+
+    /**
+     * @param boolean $blnShowLogs
+     */
+    public function setShowLogs($blnShowLogs)
+    {
+        $this->blnShowLogs = $blnShowLogs;
+    }
+
+    /**
+     * @return boolean
+     */
+    public function getShowLogs()
+    {
+        return $this->blnShowLogs;
+    }
+
+    /**
+     * Add a log entry to the database
+     *
+     * @param string $strText     The log message
+     *
+     * @param string $strFunction The function name
+     *
+     * @param string $strCategory The category name
+     */
+    protected function addLog($strText, $strFunction, $strCategory)
+    {
+        \System::log(str_replace('[nl]', '', $strText), $strFunction, $strCategory);
+
+        // If flag is set display the log entry.
+        if ($this->blnShowLogs)
+        {
+            echo sprintf('%s (%s): %s', $strCategory, $strFunction, str_replace('[nl]', PHP_EOL, $strText));
+            echo PHP_EOL;
+        }
+    }
+
+    /**
+     * Init the system with all needed information.
+     */
+    protected function initSystem()
+    {
+        // Check if we have a config.
+        if (!isset($GLOBALS[self::CONF_NAME]))
+        {
+            $this->addLog('No configuration found for cleanup with key ' . self::CONF_NAME, __CLASS__ . '::' . __FUNCTION__, TL_ERROR);
+            return false;
+        }
+
+        // The append iterator for the scanner.
+        $this->objAppendIt = new \AppendIterator();
+
+        // Flags for file scanning.
+        $this->strRDIFlags = \RecursiveDirectoryIterator::FOLLOW_SYMLINKS | \RecursiveDirectoryIterator::SKIP_DOTS | \RecursiveDirectoryIterator::UNIX_PATHS;
+
+        // Calculate the limit of the general lifetime.
+        $intLifeTime = intval($GLOBALS[self::CONF_NAME]['GENERAL_LIFETIME']);
+        if ($intLifeTime > 0)
+        {
+            $this->intTimeLimit = intval($GLOBALS[self::CONF_NAME]['GENERAL_LIFETIME']) * $this->intDayInSeconds;
+        }
+
+        // Check the folders for scanning.
+        if (is_array($GLOBALS[self::CONF_NAME]['FOLDERS']) && count($GLOBALS[self::CONF_NAME]['FOLDERS']) > 0)
+        {
+            foreach ($GLOBALS[self::CONF_NAME]['FOLDERS'] as $arrFolderSettings)
+            {
+                // Check if we have a path;
+                if (empty($arrFolderSettings['path']))
+                {
+                    continue;
+                }
+
+                // Build path.
+                $strShortPath = $GLOBALS['TL_CONFIG']['uploadPath'] . '/' . $arrFolderSettings['path'];
+                $strFullPath  = TL_ROOT . '/' . $strShortPath;
+
+                // Check if the folder exists.
+                if (file_exists($strFullPath))
+                {
+                    // If exists add it to the list.
+                    $this->arrScanFolder[] = $arrFolderSettings;
+                }
+                else
+                {
+                    // Else add a log that the folder doesn't exists.
+                    $this->addLog('The given folder doesn\'t exists: ' .  $strShortPath, __CLASS__ . '::' . __FUNCTION__, TL_ERROR);
+                }
+            }
+        }
+
+        // Get the general blacklist and make it ready for a preg_match.
+        if (is_array($GLOBALS[self::CONF_NAME]['GENERAL_BLACKLIST']) && count($GLOBALS[self::CONF_NAME]['GENERAL_BLACKLIST']) > 0)
+        {
+            foreach ($GLOBALS[self::CONF_NAME]['GENERAL_BLACKLIST'] as $strFilter)
+            {
+                $this->arrGeneralBlacklist[] = str_replace($this->arrPregSearch, $this->arrPregReplace, $strFilter);
+            }
+        }
+
+        // Make the TL_ROOT rdy for a preg.
+        $this->strPregRoot = str_replace(array('\\', '/'), array('\\\\', '\\/'), TL_ROOT);
+
+        return true;
     }
 
     /**
@@ -204,6 +290,12 @@ class CleanUp
     {
         // Check if we have a config.
         if (!isset($GLOBALS[self::CONF_NAME]))
+        {
+            return;
+        }
+
+        // Init the system. If false return.
+        if(!$this->initSystem())
         {
             return;
         }
@@ -223,11 +315,11 @@ class CleanUp
         {
             if (empty($this->arrListOfDeletedFiles))
             {
-                \Backend::log('Nothing found to delete. ', __CLASS__ . '::run()', TL_CRON);
+                $this->addLog('Nothing found to delete. ', __CLASS__ . '::run()', TL_CRON);
             }
             else
             {
-                \Backend::log('Delete some old files: ' . implode(', ', $this->arrListOfDeletedFiles), __CLASS__ . '::run()', TL_CRON);
+                $this->addLog('Delete some old files: [nl] ' . implode(',[nl] ', $this->arrListOfDeletedFiles), __CLASS__ . '::run()', TL_CRON);
             }
         }
     }
