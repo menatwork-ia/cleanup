@@ -11,11 +11,30 @@
 
 namespace CleanUp;
 
+// Search the initialize.php. Over system/modules/cleanup or composer/vendor... .
+$dir = ( isset($_SERVER['SCRIPT_FILENAME']) && dirname($_SERVER['SCRIPT_FILENAME']) != '.') ? dirname($_SERVER['SCRIPT_FILENAME']) : dirname(__FILE__);
+while ($dir && $dir != '.' && $dir != '/' && !is_file($dir . '/system/initialize.php'))
+{
+    $dir = dirname($dir);
+}
+
+// If nothing found exit.
+if (!!is_file($dir . '/system/initialize.php'))
+{
+    header("HTTP/1.0 500 Internal Server Error");
+    header('Content-Type: text/html; charset=utf-8');
+    echo '500 Internal Server Error';
+    echo PHP_EOL;
+    echo 'Could not find initialize.php!';
+    echo PHP_EOL;
+    exit(1);
+}
+
 /**
  * Initialize the system
  */
 define('TL_MODE', 'CTO_BE');
-require('../../initialize.php');
+require($dir . '/system/initialize.php');
 
 // If CLI get options and ste them.
 if (PHP_SAPI === 'cli' || empty($_SERVER['REMOTE_ADDR']))
