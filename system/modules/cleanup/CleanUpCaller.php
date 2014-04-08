@@ -19,7 +19,7 @@ while ($dir && $dir != '.' && $dir != '/' && !is_file($dir . '/system/initialize
 }
 
 // If nothing found exit.
-if (!!is_file($dir . '/system/initialize.php'))
+if (!is_file($dir . '/system/initialize.php'))
 {
     header("HTTP/1.0 500 Internal Server Error");
     header('Content-Type: text/html; charset=utf-8');
