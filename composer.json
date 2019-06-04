@@ -26,9 +26,8 @@
 		"source":"https://github.com/menatwork-ia/cleanup"
 	},
 	"require":{
-		"php":">=5.3",
-		"contao/core":">=3.2,<4",
-		"contao-community-alliance/composer-installer":"*"
+		"php": "^5.5 || ^7.0",
+		"contao/core-bundle": "^4.0"
 	},
 	"autoload":{
 		"classmap":["system/"]
